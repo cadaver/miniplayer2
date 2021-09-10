@@ -1,0 +1,18 @@
+all: gt2mini2.exe example.prg example.sid
+
+clean:
+	del *.exe
+	del *.prg
+	del *.sid
+
+gt2mini2.exe: gt2mini2.c fileio.c
+	gcc gt2mini2.c fileio.c -ogt2mini2.exe
+
+example.prg: gt2mini2.exe mw4title.sng prgexample.s player.s
+	gt2mini2 mw4title.sng musicmodule.s -s1000
+	dasm musicmodule.s -omusicmodule.bin -p3 -f3
+	dasm prgexample.s -oexample.prg -p3
+
+example.sid: gt2mini2.exe mw4title.sng sidexample.s player.s
+	gt2mini2 mw4title.sng musicdata.s
+	dasm sidexample.s -oexample.sid -p3 -f3
