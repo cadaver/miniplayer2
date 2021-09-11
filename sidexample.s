@@ -40,6 +40,7 @@ musicdata:      include "musicdata.s"
         ; Player configuration
 
 PLAYER_ZPBASE   = $20
+PLAYER_ZPOPT    = 1
 PLAYER_SFX      = 0
 PLAYER_MODULES  = 0
 

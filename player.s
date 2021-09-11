@@ -2,9 +2,15 @@
 ; Written by Cadaver (loorni@gmail.com) 9/2021
 
 ; Config values you need to define:
-; Zeropage base. Need 23 consecutive ZP addresses
+;
+; Zeropage base. Need 23 consecutive ZP addresses when ZP optimization is in use
+; or 2 when disabled
 ;
 ; PLAYER_ZPBASE   = $c0
+;
+; Zeropage optimization. Speeds up player. Zero to disable
+;
+; PLAYER_ZPOPT    = 1
 ;
 ; Sound effect support. Zero to disable
 ;
@@ -118,8 +124,9 @@ SETSR           = $7e
 
 pattPtrLo       = PLAYER_ZPBASE
 pattPtrHi       = PLAYER_ZPBASE+1
-zpChannelVars   = PLAYER_ZPBASE+2
 
+        if PLAYER_ZPOPT > 0
+zpChannelVars   = PLAYER_ZPBASE+2
 chnCounter      = zpChannelVars+0
 chnPattPtrLo    = zpChannelVars+1
 chnPattPtrHi    = zpChannelVars+2
@@ -127,10 +134,11 @@ chnSongPos      = zpChannelVars+3
 chnDuration     = zpChannelVars+4
 chnWavePos      = zpChannelVars+5
 chnWaveTime     = zpChannelVars+6
+        endif
 
         if PLAYER_SFX > 0
 chnSfxPtrLo     = chnWavePos
-chnSfxTime      = chnWaveTime
+chnSfxTime      = chnWaveTime           
         endif
 
         if PLAYER_MODULES > 0
@@ -331,10 +339,17 @@ Play_NoSongJump:bpl Play_NoTrans
                 iny
 Play_SongAccess3:
                 lda dummyData,y
-Play_NoTrans:   iny
+Play_NoTrans:   iny             
+        if PLAYER_ZPOPT > 0
                 sty chnSongPos,x
                 tay
-Play_PattTblLoM1Access1:                  
+        else
+                sta Play_PattNum+1
+                tya
+                sta chnSongPos,x
+Play_PattNum:   ldy #$00
+        endif
+Play_PattTblLoM1Access1:
                 lda pattTblLo-1,y
                 sta chnPattPtrLo,x
 Play_PattTblHiM1Access1:
@@ -351,9 +366,17 @@ Play_JumpToSfx: jmp Play_SfxExec
 
 Play_SetWavePosCmd:
                 lda (pattPtrLo),y
+        if PLAYER_ZPOPT > 0
                 iny
                 sty chnPattPtrLo,x
                 jmp Play_NewWavePosCommon
+        else
+                sta chnWavePos,x
+                iny
+                tya
+                sta chnPattPtrLo,x
+                jmp Play_NewWavePosCommon2
+        endif
 
 Play_Commands:  beq Play_Rest
                 cmp #WAVEPOS
@@ -363,7 +386,13 @@ Play_SetRegCmd: and #$07
                 lda (pattPtrLo),y
                 iny
 Play_SetRegSta: sta $d400,x
-Play_Rest:      sty chnPattPtrLo,x
+Play_Rest:      
+        if PLAYER_ZPOPT > 0
+                sty chnPattPtrLo,x
+        else
+                tya
+                sta chnPattPtrLo,x
+        endif
                 jmp Play_WaveExec
 
 Play_NoNewIns:  clc
@@ -405,7 +434,12 @@ Play_DurCommon: sta chnCounter,x
                 iny
                 sta chnIns,x
 Play_NewNoteCommon:
+        if PLAYER_ZPOPT > 0
                 sty chnPattPtrLo,x
+        else
+                tya
+                sta chnPattPtrLo,x
+        endif
                 ldy chnIns,x
                 bmi Play_LegatoNoteInit
 Play_InsPulsePosAccess1:
@@ -429,6 +463,7 @@ Play_InsWavePosAccess1:
                 lda insWavePos,y
 Play_NewWavePosCommon:
                 sta chnWavePos,x
+Play_NewWavePosCommon2:
                 lda #$00
                 sta chnWaveTime,x
 Play_WaveDone:  rts
@@ -579,7 +614,12 @@ Play_NewNoteSfxExec:
 Play_NewNoteSfxCommand:
                 iny
 Play_NewNoteSfxRest:
+        if PLAYER_ZPOPT > 0
                 sty chnPattPtrLo,x
+        else
+                tya
+                sta chnPattPtrLo,x
+        endif
                 lda chnSfxPtrHi,x
 Play_SfxExec:   sta pattPtrHi
                 ldy chnSfxPtrLo,x
@@ -596,12 +636,26 @@ Play_SfxExec:   sta pattPtrHi
                 lda (pattPtrLo),y
                 cmp #SFX_FREQ
                 bcc Play_SfxStepDone
+        if PLAYER_ZPOPT > 0
                 sty chnSfxPtrLo,x
+        else
+                sta Play_SfxRestA+1
+                tya
+                sta chnSfxPtrLo,x
+Play_SfxRestA:  lda #$00
+        endif
 Play_SfxFreqOrSlide:
                 cmp #SFX_FIRSTSLIDE
                 bcs Play_SfxSlide
 Play_SfxFreq:   iny
+        if PLAYER_ZPOPT > 0
                 sty chnSfxPtrLo,x
+        else
+                sta Play_SfxRestA2+1
+                tya
+                sta chnSfxPtrLo,x
+Play_SfxRestA2: lda #$00
+        endif
                 sbc #SFX_FREQ-2
                 jmp Play_WaveStepAbsNote
 Play_SfxSlide:  iny
@@ -646,7 +700,12 @@ Play_SfxInit:   sta $d402,x
                 lda #$00
                 sta chnSfxTime,x
 Play_SfxStepDone:
+        if PLAYER_ZPOPT > 0
                 sty chnSfxPtrLo,x
+        else
+                tya
+                sta chnSfxPtrLo,x
+        endif
                 rts
         endif
 
@@ -759,6 +818,19 @@ freqTbl:        dc.w $022d,$024e,$0271,$0296,$02be,$02e8,$0314,$0343,$0374,$03a9
                 dc.w $8b42,$9389,$9c4f,$a59b,$af74,$b9e2,$c4f0,$d0a6,$dd0e,$ea33,$f820,$ffff
 
         ; Non-ZP variables
+
+        if PLAYER_ZPOPT = 0
+chnCounter:     dc.b 0
+chnPattPtrLo:   dc.b 0
+chnPattPtrHi:   dc.b 0
+chnSongPos:     dc.b 0
+chnDuration:    dc.b 0
+chnWavePos:     dc.b 0
+chnWaveTime:    dc.b 0
+            
+                dc.b 0,0,0,0,0,0,0
+                dc.b 0,0,0,0,0,0,0
+        endif
 
 chnTrans:       dc.b 0
 chnIns:         dc.b 0

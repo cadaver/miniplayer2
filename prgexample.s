@@ -47,6 +47,7 @@ Loop:           lda #68
         ; Player configuration
 
 PLAYER_ZPBASE   = $20
+PLAYER_ZPOPT    = 1
 PLAYER_SFX      = 1
 PLAYER_MODULES  = 1
 
