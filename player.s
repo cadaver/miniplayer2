@@ -258,6 +258,8 @@ Play_InitChn:
         if PLAYER_SFX > 0
                 lda chnSfxPtrHi,x                 ;If sound ongoing, skip wave init
                 bne Play_InitChnSkipWave
+        else
+                lda #$00
         endif
                 sta $d404,x
                 sta $d406,x                     ;Full HR to get slow attack notes to start from zero
