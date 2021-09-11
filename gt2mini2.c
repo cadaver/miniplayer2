@@ -1027,8 +1027,6 @@ void convertsong(void)
         int tpstepsleft = 0;
         int lastdurrow = 0;
         
-        printf("Pattern %d starts with instr %d\n", e, lastnoteins);
-
         for (c = 0; c < MAX_PATTROWS+1; c++)
         {
             int note = pattern[e][c*4];

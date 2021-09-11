@@ -30,6 +30,64 @@ Converter from GoatTracker 2 format included. Supported effects are 1,2,3,4,5,6 
 
 Use at own risk.
 
+## How to use
+
+Include the player source code player.s in your program. It is in DASM format. Note the configuration instructions in the beginning.
+
+### Convert a GT2 song into sourcecode, music module mode (default)
+
+Music modules must be page-aligned (address lowbyte 0.)
+
+```
+gt2mini2 yoursong.sng yoursong.s
+```
+
+### Convert a GT2 song into sourcecode, single music only
+
+In this case music should be assembled together with the player (AKA bare mode). Note that also in this case music data must be page-aligned.
+
+```
+gt2mini2 yoursong.sng yoursong.s -b
+```
+
+### Set a new music module into use
+
+```
+lda #$ff
+sta PlayRoutine+1 ;Make sure playroutine outputs silence in the meanwhile
+lda #<musicData ;Must be 0
+ldx #>musicData
+jsr SetMusicData
+```
+
+### Start playing a subtune
+
+```
+lda #subtune+1 ;1 corresponds to the first subtune
+sta PlayRoutine+1
+```
+
+### Play one frame of music
+
+```
+jsr PlayRoutine
+```
+
+### Play a sound effect
+
+Sound effect data must not pagecross. Playroutine must not be called in between the low and high pointer writes (ensure with SEI instruction if necessary). When the sound effect finishes, chnSfxPtrHi becomes 0 and music resumes on the channel.
+
+```
+ldx #0 ;Channel index. Should be 0, 7 or 14 for channels 1-3
+lda #<soundFXData
+sta chnSfxPtrLo,x
+lda #>soundFXData
+sta chnSfxPtrHi,x
+```
+
+Check prgexample.s for an example sound effect. You must also define slide speed tables (sfxSlideTblLo & sfxSlideTblHi) so that the player
+will assemble correctly with sound effect support enabled.
+
 ## License
 
 Copyright (c) 2021 Lasse Öörni
