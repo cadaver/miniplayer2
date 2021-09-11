@@ -1,5 +1,6 @@
-; .sid example of using the playroutine. Assembles the music data directly after
-; the player. Note that unlike the first Miniplayer, SetMusicData is required
+; .sid example of using the playroutine. Music and player are assembled in the
+; same file, but page-alignment of the music data must be ensured.
+
 
                 processor 6502
                 org $0000
