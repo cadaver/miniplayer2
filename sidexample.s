@@ -41,6 +41,7 @@ musicdata:      include "musicdata.s"
 
 PLAYER_ZPBASE   = $20
 PLAYER_SFX      = 0
+PLAYER_MODULES  = 0
 
         ; Player
 
@@ -51,6 +52,4 @@ PLAYER_SFX      = 0
 Init:           tax
                 inx
                 stx PlayRoutine+1
-                lda #<musicdata
-                ldx #>musicdata
-                jmp SetMusicData
+                rts

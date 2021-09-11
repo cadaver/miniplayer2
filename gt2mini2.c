@@ -114,6 +114,7 @@ int mppulsesize = 0;
 int mpfiltsize = 0;
 
 FILE* out = 0;
+int baremode = 0;
 int startaddress = -1;
 int endaddress = -1;
 
@@ -154,7 +155,8 @@ int main(int argc, const char** argv)
     if (argc < 3)
     {
         printf("Converter from GT2 format to minimal player 2. Outputs source code.\n"
-               "Usage: gt2mini <input> <output> [options]\n"
+               "Usage: gt2mini2 <input> <output> [options]\n"
+               "-b     Bare mode; do not add header for music module operation\n"
                "-sxxxx Include hexadecimal start address & Dasm processor statement\n"
                "-exxxx Calculate start address from specified hexadecimal end address\n");
         return 1;
@@ -166,6 +168,9 @@ int main(int argc, const char** argv)
         {
             switch(argv[c][1])
             {
+            case 'b':
+                baremode = 1;
+                break;
             case 's':
                 startaddress = strtoul(&argv[c][2], 0, 16);
                 break;
@@ -177,19 +182,25 @@ int main(int argc, const char** argv)
     }
 
     memset(prefix, 0, sizeof prefix);
-    for (d = strlen(argv[1])-1; d > 0; --d)
+    
+    // Prefix added to labels when not in bare mode, to allow compiling several music modules
+    // in same compilation unit if needed
+    if (!baremode)
     {
-        if (argv[1][d] == '/' || argv[1][d] == '\\')
+        for (d = strlen(argv[1])-1; d > 0; --d)
         {
-            ++d;
-            break;
+            if (argv[1][d] == '/' || argv[1][d] == '\\')
+            {
+                ++d;
+                break;
+            }
         }
-    }
-    for (c = 0; c < sizeof prefix; ++c)
-    {
-        if (argv[1][d] == 0 || argv[1][d] == '.')
-            break;
-        prefix[c] = argv[1][d++];
+        for (c = 0; c < sizeof prefix; ++c)
+        {
+            if (argv[1][d] == 0 || argv[1][d] == '.')
+                break;
+            prefix[c] = argv[1][d++];
+        }
     }
 
     loadsong(argv[1]);
@@ -1903,7 +1914,8 @@ void savempsong(const char* songfilename)
         pagefree[c] = 256;
     }
 
-    totalsize += 7;
+    if (!baremode)
+        totalsize += 7;
     totalsize += (highestusedsong+1) * 5;
     totalsize += (highestusedpatt+1) * 2;
     totalsize += mpinssize * 4;
@@ -1955,15 +1967,18 @@ void savempsong(const char* songfilename)
         fprintf(out, "\n");
     }
 
-    fprintf(out, "%smusicHeader:\n", prefix);
-    fprintf(out, "  dc.b %d\n", (highestusedsong+1)*5);
-    fprintf(out, "  dc.b %d\n", highestusedpatt+1);
-    fprintf(out, "  dc.b %d\n", mpinssize);
-    fprintf(out, "  dc.b %d\n", mpwavesize);
-    fprintf(out, "  dc.b %d\n", mpwaveadsrsize);
-    fprintf(out, "  dc.b %d\n", mppulsesize);
-    fprintf(out, "  dc.b %d\n", mpfiltsize);
-    fprintf(out, "\n");
+    if (!baremode)
+    {
+        fprintf(out, "%smusicHeader:\n", prefix);
+        fprintf(out, "  dc.b %d\n", (highestusedsong+1)*5);
+        fprintf(out, "  dc.b %d\n", highestusedpatt+1);
+        fprintf(out, "  dc.b %d\n", mpinssize);
+        fprintf(out, "  dc.b %d\n", mpwavesize);
+        fprintf(out, "  dc.b %d\n", mpwaveadsrsize);
+        fprintf(out, "  dc.b %d\n", mppulsesize);
+        fprintf(out, "  dc.b %d\n", mpfiltsize);
+        fprintf(out, "\n");
+    }
 
     fprintf(out, "%ssongTbl:\n", prefix);
     for (c = 0; c <= highestusedsong; ++c)

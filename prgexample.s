@@ -14,14 +14,14 @@ Start:          sei
                 sta $d415
                 lda #$7f
                 sta $dc0d
+                lda #$33
+                sta $d012
                 lda #$01
                 sta $d01a
                 lda #<Raster
                 sta $0314
                 lda #>Raster
                 sta $0315
-                lda #$33
-                sta $d012
                 lda #27
                 sta $d011
                 lda $dc0d
@@ -48,6 +48,7 @@ Loop:           lda #68
 
 PLAYER_ZPBASE   = $20
 PLAYER_SFX      = 1
+PLAYER_MODULES  = 1
 
         ; Player
 

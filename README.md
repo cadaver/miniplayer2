@@ -25,7 +25,6 @@ Differences to the original miniplayer:
 - No waveform register shadowing. Keyoffs are implemented as a direct waveform change
 - Music must be page-aligned and music data may be larger
 - Needs a much larger zeropage variable area
-- Only SetMusicData (music module) operation is provided
 
 Converter from GoatTracker 2 format included. Supported effects are 1,2,3,4,5,6 and F (no funktempo). Effect 3 (toneportamento) support is based on calculating the required slide duration, and may not work exactly in case of transposed patterns.
 

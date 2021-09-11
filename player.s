@@ -9,6 +9,13 @@
 ; Sound effect support. Zero to disable
 ;
 ; PLAYER_SFX      = 1
+;
+; Music module support (SetMusicData routine). Zero to disable. When disabled,
+; music should be converted with gt2mini2's bare mode switch (-b) and included
+; in the same compilation unit as the playroutine. In both cases it needs to be
+; page-aligned, as the player needs patterns to not cross pages.
+;
+; PLAYER_MODULES  = 1
 
         ; Defines
 
@@ -126,6 +133,7 @@ chnSfxPtrLo     = chnWavePos
 chnSfxTime      = chnWaveTime
         endif
 
+        if PLAYER_MODULES > 0
         ; Set new music module to play. Address must be page-aligned.
         ; Playroutine should be disabled (negative value in PlayRoutine+1) during call.
         ;
@@ -178,6 +186,25 @@ SetMusicData_FixupDone:
                 sta pattPtrLo
                 rts
 
+songTbl         = dummyData
+pattTblLo       = dummyData
+pattTblHi       = dummyData
+insAD           = dummyData
+insWavePos      = dummyData
+insPulsePos     = dummyData
+insFiltPos      = dummyData
+waveTbl         = dummyData
+noteTbl         = dummyData
+waveNextTbl     = dummyData
+waveSRTbl       = dummyData
+pulseLimitTbl   = dummyData
+pulseSpdTbl     = dummyData
+pulseNextTbl    = dummyData
+filtLimitTbl    = dummyData
+filtSpdTbl      = dummyData
+filtNextTbl     = dummyData
+        endif
+
 Play_SilenceSID:lda #$00
                 sta $d404
                 sta $d404+7
@@ -193,7 +220,7 @@ Play_DoInit:    dex
                 adc pattPtrHi
                 tay
 Play_SongTblAccess1:
-                lda dummyData,y
+                lda songTbl,y
                 iny
                 sta Play_SongAccess1+1
                 sta Play_SongAccess2+1
@@ -201,7 +228,7 @@ Play_SongTblAccess1:
                 adc #$01
                 sta Play_SongP1Access1+1
 Play_SongTblAccess2:
-                lda dummyData,y
+                lda songTbl,y
                 iny
                 sta Play_SongAccess1+2
                 sta Play_SongAccess2+2
@@ -233,7 +260,7 @@ Play_InitChnSkipWave:
                 lda #$ff
                 sta chnCounter,x
 Play_SongTblAccess3:
-                lda dummyData,y
+                lda songTbl,y
                 iny
                 sta chnSongPos,x
                 lda #<(PlayRoutine+1)           ;Point to a location guaranteed to be zero
@@ -256,11 +283,11 @@ Play_FiltPos:   ldy #$00
                 bmi Play_FiltInit
 Play_FiltCutoff:lda #$00
 Play_FiltLimitM1Access1:
-                cmp dummyData-1,y
+                cmp filtLimitTbl-1,y
                 beq Play_FiltNext
                 clc
 Play_FiltSpdM1Access1:
-                adc dummyData-1,y
+                adc filtSpdTbl-1,y
 Play_StoreCutoff:
                 sta Play_FiltCutoff+1
                 sta $d416
@@ -272,20 +299,20 @@ Play_FiltDone:  jsr Play_ChnExec
                 jmp Play_ChnExec
 
 Play_FiltSpdM81Access1:
-Play_FiltInit:  lda dummyData-$81,y
+Play_FiltInit:  lda filtSpdTbl-$81,y
                 sta $d417
                 and #$70
                 ora #$0f
                 sta $d418
 Play_FiltNextM81Access1:
-                lda dummyData-$81,y
+                lda filtNextTbl-$81,y
                 sta Play_FiltPos+1
 Play_FiltLimitM81Access1:
-                lda dummyData-$81,y
+                lda filtLimitTbl-$81,y
                 jmp Play_StoreCutoff
 
 Play_FiltNextM1Access1:
-Play_FiltNext:  lda dummyData-1,y
+Play_FiltNext:  lda filtNextTbl-1,y
                 sta Play_FiltPos+1
                 bcs Play_FiltDone               ;C=1 here
 
@@ -308,10 +335,10 @@ Play_NoTrans:   iny
                 sty chnSongPos,x
                 tay
 Play_PattTblLoM1Access1:                  
-                lda dummyData-1,y
+                lda pattTblLo-1,y
                 sta chnPattPtrLo,x
 Play_PattTblHiM1Access1:
-                lda dummyData-1,y
+                lda pattTblHi-1,y
                 sta chnPattPtrHi,x
         if PLAYER_SFX > 0
                 lda chnSfxPtrHi,x
@@ -382,12 +409,12 @@ Play_NewNoteCommon:
                 ldy chnIns,x
                 bmi Play_LegatoNoteInit
 Play_InsPulsePosAccess1:
-                lda dummyData,y
+                lda insPulsePos,y
                 beq Play_SkipPulseInit
                 sta chnPulsePos,x
 Play_SkipPulseInit:
 Play_InsFiltPosAccess1:
-                lda dummyData,y
+                lda insFiltPos,y
                 beq Play_SkipFiltInit
                 sta Play_FiltPos+1
 Play_SkipFiltInit:
@@ -396,10 +423,10 @@ Play_SkipFiltInit:
                 lda #$08
                 sta $d404,x
 Play_InsADAccess1:
-                lda dummyData,y
+                lda insAD,y
                 sta $d405,x
 Play_InsWavePosAccess1:
-                lda dummyData,y
+                lda insWavePos,y
 Play_NewWavePosCommon:
                 sta chnWavePos,x
                 lda #$00
@@ -408,7 +435,7 @@ Play_WaveDone:  rts
 
 Play_LegatoNoteInit:
 Play_InsWavePosM80Access1:
-                lda dummyData-$80,y
+                lda insWavePos-$80,y
                 bne Play_NewWavePosCommon
 
         if PLAYER_SFX > 0
@@ -426,11 +453,11 @@ Play_PulseExec: ldy chnPulsePos,x
                 beq Play_WaveExec
 Play_PulseMod:  lda chnPulse,x
 Play_PulseLimitM1Access1:
-                cmp dummyData-1,y
+                cmp pulseLimitTbl-1,y
                 beq Play_PulseNext
                 clc
 Play_PulseSpdM1Access1:
-                adc dummyData-1,y
+                adc pulseSpdTbl-1,y
                 adc #$00
 Play_StorePulse:sta chnPulse,x
                 sta $d402,x
@@ -438,22 +465,22 @@ Play_StorePulse:sta chnPulse,x
 Play_WaveExec:  ldy chnWavePos,x
                 beq Play_WaveDone
 Play_WaveM1Access1:
-                lda dummyData-1,y
+                lda waveTbl-1,y
                 beq Play_Vibrato
                 cmp #SLIDE
                 bcs Play_SlideOrDelay
 Play_WaveChange:sta $d404,x
 Play_WaveSRM1Access1:
-                lda dummyData-1,y
+                lda waveSRTbl-1,y
                 beq Play_SkipADSR
                 sta $d406,x
 Play_SkipADSR:
 Play_NoWaveChange:
 Play_WaveNextM1Access1:
-                lda dummyData-1,y
+                lda waveNextTbl-1,y
                 sta chnWavePos,x
 Play_NoteM1Access1:
-                lda dummyData-1,y
+                lda noteTbl-1,y
                 bmi Play_WaveStepAbsNote
 Play_WaveStepRelNote:
                 clc
@@ -471,14 +498,14 @@ Play_StoreFreqHi:
                 rts
 
 Play_PulseNextM81Access1:
-Play_PulseInit: lda dummyData-$81,y
+Play_PulseInit: lda pulseNextTbl-$81,y
                 sta chnPulsePos,x
 Play_PulseLimitM81Access1:
-                lda dummyData-$81,y
+                lda pulseLimitTbl-$81,y
                 jmp Play_StorePulse
 
 Play_PulseNextM1Access1:
-Play_PulseNext: lda dummyData-1,y
+Play_PulseNext: lda pulseNextTbl-1,y
                 sta chnPulsePos,x
                 jmp Play_WaveExec
 
@@ -495,7 +522,7 @@ Play_VibDone:   rts
 Play_Vibrato:   lda chnWaveTime,x
                 bpl Play_VibNoDir
 Play_NoteM1Access2:
-                cmp dummyData-1,y
+                cmp noteTbl-1,y
                 bcs Play_VibNoDir2
                 eor #$ff
 Play_VibNoDir:  sec
@@ -505,7 +532,7 @@ Play_VibNoDir2: sbc #$02
                 lda chnFreqLo,x
                 bcs Play_VibDown
 Play_WaveNextM1Access2:
-Play_VibUp:     adc dummyData-1,y
+Play_VibUp:     adc waveNextTbl-1,y
                 sta chnFreqLo,x
                 sta $d400,x
                 bcc Play_VibDone
@@ -513,7 +540,7 @@ Play_VibUp:     adc dummyData-1,y
                 adc #$00
                 jmp Play_StoreFreqHi
 Play_WaveNextM1Access3:
-Play_VibDown:   sbc dummyData-1,y
+Play_VibDown:   sbc waveNextTbl-1,y
                 sta chnFreqLo,x
                 sta $d400,x
                 bcs Play_VibDone
@@ -523,12 +550,12 @@ Play_VibDown:   sbc dummyData-1,y
 
 Play_Slide:     lda chnFreqLo,x
 Play_NoteM1Access3:
-                adc dummyData-1,y                 ;Note: speed must be stored as speed-1 due to C=1 here
+                adc noteTbl-1,y                 ;Note: speed must be stored as speed-1 due to C=1 here
                 sta chnFreqLo,x
                 sta $d400,x
                 lda chnFreqHi,x
 Play_WaveNextM1Access4:
-                adc dummyData-1,y
+                adc waveNextTbl-1,y
                 jmp Play_StoreFreqHi
 
         if PLAYER_SFX > 0

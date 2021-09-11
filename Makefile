@@ -14,5 +14,5 @@ example.prg: gt2mini2 mw4title.sng prgexample.s player.s
 	dasm prgexample.s -oexample.prg -p3
 
 example.sid: gt2mini2 mw4title.sng sidexample.s player.s
-	./gt2mini2 mw4title.sng musicdata.s
+	./gt2mini2 mw4title.sng musicdata.s -b
 	dasm sidexample.s -oexample.sid -p3 -f3
