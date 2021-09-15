@@ -787,7 +787,7 @@ void convertsong(void)
             pulseposmap[sp+1] = (mppulsesize + 1) | (time & 0x80);
             sp++;
 
-            if (time != 0xff && spd & 0xf)
+            if (time != 0xff && (spd & 0xf))
             {
                 printf("Warning: lowest 4 bits of pulse aren't supported\n");
             }
@@ -805,7 +805,7 @@ void convertsong(void)
                 mppulsenexttbl[mppulsesize] = mppulsesize+1+1;
                 if (mppulsesize > 1 && mppulsenexttbl[mppulsesize-1] == mppulsesize+1)
                     mppulsenexttbl[mppulsesize-1] |= 0x80;
-                pulsevalue = ((time & 0xf) << 8) | spd;
+                pulsevalue = ((time & 0xf) << 8) | (spd & 0xf0);
                 ++mppulsesize;
             }
             else
