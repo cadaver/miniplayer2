@@ -111,11 +111,12 @@ prevJoy:        dc.b 0
 
                 org $0f00
 
-soundEffect:    dc.b SFX_INIT+$01,$04,$e9           ;Init with pulsewidth 1 and ADSR 04e9
-                dc.b $81,SFX_FREQ+$3c,SFX_FREQ+$30
-                dc.b SFX_SLIDE-4,$01                ;Start a slide down
-                dc.b $80                            ;Gate off
-                dc.b SFX_SLIDE-16,$01               ;Continue the slide
+soundEffect:    dc.b SFX_INIT+$01,$04,$e9           ;Init with pulsewidth 1 (high byte) and ADSR 04e9
+                dc.b $81,SFX_FREQ+$3c               ;Set both waveform and frequency on same frame (absolute note 3c)
+                dc.b SFX_FREQ+$30                   ;Set frequency only on next frame
+                dc.b SFX_SLIDE-4,$01                ;Start a slide down, length 4 frames
+                dc.b $80                            ;Set gate off waveform
+                dc.b SFX_SLIDE-16,$01               ;Continue the slide, length 16 frames
                 dc.b SFX_END                        ;End effect
 
         ; Slide speed table is required when using sound effects.
