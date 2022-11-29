@@ -84,6 +84,8 @@ Raster:         cld
                 sta curRaster
                 cmp maxRaster
                 bcc RasterNoNewMax
+                cmp #$10            ;Fix possible illegal max raster on startup
+                bcs RasterNoNewMax
                 sta maxRaster
 RasterNoNewMax: lda $dc00
                 pha

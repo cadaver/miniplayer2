@@ -544,7 +544,7 @@ Play_PulseLimitM81Access1:
 Play_PulseNextM1Access1:
 Play_PulseNext: lda pulseNextTbl-1,y
                 sta chnPulsePos,x
-                jmp Play_WaveExec
+                bcs Play_WaveExec
 
 Play_SlideOrDelay:
                 beq Play_Slide
