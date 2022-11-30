@@ -138,7 +138,7 @@ chnWaveTime     = zpChannelVars+6
 
         if PLAYER_SFX > 0
 chnSfxPtrLo     = chnWavePos
-chnSfxTime      = chnWaveTime           
+chnSfxTime      = chnWaveTime
         endif
 
         if PLAYER_MODULES > 0
@@ -254,17 +254,14 @@ Play_SongTblAccess2:
                 ldx #$07
                 jsr Play_InitChn
                 ldx #$0e
-Play_InitChn:
+Play_InitChn:   lda #$00
         if PLAYER_SFX > 0
-                lda chnSfxPtrHi,x                 ;If sound ongoing, skip wave init
+                cmp chnSfxPtrHi,x               ;If sound ongoing, skip wave init
                 bne Play_InitChnSkipWave
-        else
-                lda #$00
         endif
-                sta $d404,x
-                sta $d406,x                     ;Full HR to get slow attack notes to start from zero
+                sta $d406,x
+                sta $d404,x                     ;Full HR to get slow attack notes to start from zero
 Play_InitChnSkipWave:
-                lda #$00
                 sta chnWavePos,x
                 sta chnPulsePos,x
                 lda #$ff
@@ -341,7 +338,7 @@ Play_NoSongJump:bpl Play_NoTrans
                 iny
 Play_SongAccess3:
                 lda dummyData,y
-Play_NoTrans:   iny             
+Play_NoTrans:   iny
         if PLAYER_ZPOPT > 0
                 sty chnSongPos,x
                 tay
@@ -388,7 +385,7 @@ Play_SetRegCmd: and #$07
                 lda (pattPtrLo),y
                 iny
 Play_SetRegSta: sta $d400,x
-Play_Rest:      
+Play_Rest:
         if PLAYER_ZPOPT > 0
                 sty chnPattPtrLo,x
         else
@@ -829,7 +826,7 @@ chnSongPos:     dc.b 0
 chnDuration:    dc.b 0
 chnWavePos:     dc.b 0
 chnWaveTime:    dc.b 0
-            
+
                 dc.b 0,0,0,0,0,0,0
                 dc.b 0,0,0,0,0,0,0
         endif

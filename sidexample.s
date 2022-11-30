@@ -1,7 +1,6 @@
 ; .sid example of using the playroutine. Music and player are assembled in the
 ; same file, but page-alignment of the music data must be ensured.
 
-
                 processor 6502
                 org $0000
 
@@ -25,7 +24,7 @@ SUBTUNES        = 1
 
                 org $0056
 
-                dc.b "2021 Covert Bitops"
+                dc.b "2022 Covert Bitops"
 
                 org $0076
                 dc.b $00,$10
