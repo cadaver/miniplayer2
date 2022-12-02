@@ -709,6 +709,7 @@ Play_SfxStepDone:
 
         ; Fixup data for SetMusicData
 
+        if PLAYER_MODULES > 0
 fixupSubTbl:    dc.b 0,1,$80,$81
 
 fixupDestLoTbl: dc.b <Play_SongTblAccess1
@@ -804,6 +805,7 @@ fixupTypeTbl:   dc.b FIX_NOADD
                 dc.b FIX_NOADD|FIX_SUB81
                 dc.b FIX_FILT|FIX_SUB1
                 dc.b FIX_NOADD|FIX_SUB81
+        endif
 
         ; Frequency table
 
