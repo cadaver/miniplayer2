@@ -264,7 +264,6 @@ Play_InitChn:   lda #$00
 Play_InitChnSkipWave:
                 sta chnWavePos,x
                 sta chnPulsePos,x
-                lda #$ff
                 sta chnCounter,x
 Play_SongTblAccess3:
                 lda songTbl,y
