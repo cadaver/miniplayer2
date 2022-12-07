@@ -395,7 +395,7 @@ Play_Rest:
 
 Play_NoNewIns:  adc chnTrans,x
                 sta chnNote,x
-                jmp Play_NewNoteCommon
+                bne Play_NewNoteCommon
 
         if PLAYER_SFX > 0
 Play_JumpToNewNoteSfx:
@@ -594,7 +594,7 @@ Play_WaveNextM1Access4:
 Play_NewNoteSfxNoNewIns:
                 adc chnTrans,x
                 sta chnNote,x
-                jmp Play_NewNoteSfxRest
+                bne Play_NewNoteSfxRest
 Play_NewNoteSfxExec:
                 lda (pattPtrLo),y               ;Fetch new notes and new instrument, but do not execute SID register changes
                 iny
