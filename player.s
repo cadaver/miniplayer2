@@ -546,7 +546,7 @@ Play_SlideOrDelay:
 Play_WaveDelay: adc chnWaveTime,x
                 bne Play_WaveDelayNotOver
                 sta chnWaveTime,x
-                jmp Play_NoWaveChange
+                beq Play_NoWaveChange
 Play_WaveDelayNotOver:
                 inc chnWaveTime,x
 Play_VibDone:   rts
