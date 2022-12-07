@@ -917,7 +917,7 @@ void convertsong(void)
     for (e = 1; e <= highestusedinstr; e++)
     {
         int pulseused = 0;
-        
+
         // If instrument has no wavetable pointer, assume it is not used
         if (!instr[e].ptr[WTBL])
             continue;
@@ -1026,7 +1026,7 @@ void convertsong(void)
         int tptargetnote = 0;
         int tpstepsleft = 0;
         int lastdurrow = 0;
-        
+
         for (c = 0; c < MAX_PATTROWS+1; c++)
         {
             int note = pattern[e][c*4];
@@ -1360,7 +1360,7 @@ void convertsong(void)
                     mppatterns[e][pattlen++] = cmdcolumn[c]-1;
                 }
                 else
-                    mppatterns[e][pattlen++] = notecolumn[c] + MP_NOCMD;
+                    mppatterns[e][pattlen++] = notecolumn[c] + MP_NOCMD - 2;
             }
             else if (notecolumn[c] > MP_REST)
             {
@@ -1380,7 +1380,7 @@ void convertsong(void)
         }
         mppattlen[e] = pattlen;
     }
-    
+
     // Check if some pattern is always followed by another, and combine
     do
     {
@@ -1516,7 +1516,7 @@ void convertsong(void)
             ++f;
         }
     }
-    
+
     {
         unsigned char newwavetbl[256];
         unsigned char newnotetbl[256];

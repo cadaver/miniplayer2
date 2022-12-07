@@ -393,8 +393,7 @@ Play_Rest:
         endif
                 jmp Play_WaveExec
 
-Play_NoNewIns:  clc
-                adc chnTrans,x
+Play_NoNewIns:  adc chnTrans,x
                 sta chnNote,x
                 jmp Play_NewNoteCommon
 
@@ -593,7 +592,6 @@ Play_WaveNextM1Access4:
 
         if PLAYER_SFX > 0
 Play_NewNoteSfxNoNewIns:
-                clc
                 adc chnTrans,x
                 sta chnNote,x
                 jmp Play_NewNoteSfxRest
