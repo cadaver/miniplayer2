@@ -381,8 +381,15 @@ Play_Commands:  beq Play_Rest
                 beq Play_SetWavePosCmd
 Play_SetRegCmd: and #$07
                 sta Play_SetRegSta+1
+        if PLAYER_SFX > 0
+                lda chnNote,x                   ;If sound effect finished on channel, skip SID register commands
+                cmp #$01                        ;until next actual note
+        endif
                 lda (pattPtrLo),y
                 iny
+        if PLAYER_SFX > 0
+                bcc Play_Rest
+        endif
 Play_SetRegSta: sta $d400,x
 Play_Rest:
         if PLAYER_ZPOPT > 0
@@ -674,7 +681,8 @@ Play_SfxSlideNotDone:
                 adc sfxSlideTblHi-1,y
                 jmp Play_StoreFreqHi
 
-Play_SfxEnd:    sta chnWavePos,x
+Play_SfxEnd:    sta chnNote,x
+                sta chnWavePos,x
                 sta chnPulsePos,x
                 sta chnSfxPtrHi,x
 Play_SfxSlideNoOp:
