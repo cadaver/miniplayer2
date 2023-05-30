@@ -24,7 +24,7 @@ SUBTUNES        = 1
 
                 org $0056
 
-                dc.b "2022 Covert Bitops"
+                dc.b "2023 Covert Bitops"
 
                 org $0076
                 dc.b $00,$10
