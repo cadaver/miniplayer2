@@ -247,6 +247,9 @@ Play_SongTblAccess2:
                 sta $d418
                 ldx #$00
                 stx PlayRoutine+1
+        if PLAYER_MODULES = 0
+                stx pattPtrLo                   ;If no module support, ensure pattern pointer lowbyte is zero
+        endif
                 stx $d415
                 stx $d417
                 stx Play_FiltPos+1
