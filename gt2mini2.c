@@ -1113,7 +1113,7 @@ void convertsong(void)
                 {
                     waveptr = getvibrato(0, gtcmddata);
                 }
-                else if (gtcmd != 0x5 && gtcmd != 0x6)
+                else if (gtcmd != 0x5 && gtcmd != 0x6 && gtcmd != 0x7)
                 {
                     printf("Warning: unsupported command %x in pattern %d step %d\n", gtcmd, e, c);
                 }
@@ -1207,6 +1207,11 @@ void convertsong(void)
                 if (notecolumn[d] == MP_REST && gtcmd == 0x6)
                 {
                     notecolumn[c] = MP_SETSR;
+                    cmdcolumn[d] = gtcmddata;
+                }
+                if (notecolumn[d] == MP_REST && gtcmd == 0x7)
+                {
+                    notecolumn[c] = MP_SETWAVE;
                     cmdcolumn[d] = gtcmddata;
                 }
             }
