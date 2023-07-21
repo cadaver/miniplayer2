@@ -26,7 +26,7 @@ Differences to the original miniplayer:
 - Music must be page-aligned and music data may be larger
 - By default, needs a much larger zeropage variable area. Extra ZP usage can be disabled but this makes the player slower
 
-Converter from GoatTracker 2 format included. Supported effects are 1,2,3,4,5,6 and F (no funktempo). Effect 3 (toneportamento) support is based on calculating the required slide duration, and may not work exactly in case of transposed patterns.
+Converter from GoatTracker 2 format included. Supported effects are 1,2,3,4,5,6,7 and F (no funktempo). Effect 3 (toneportamento) support is based on calculating the required slide duration, and may not work exactly in case of transposed patterns.
 
 Use at own risk.
 
