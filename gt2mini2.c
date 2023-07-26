@@ -1153,6 +1153,7 @@ void convertsong(void)
                         durcolumn[d] = dur-tpstepsleft;
                     }
                     ++d;
+                    freq = freqtbl[tptargetnote-FIRSTNOTE-12];                    
                     tptargetnote = 0;
                     lastwaveptr = 0; // TP ended, consider next waveptr command individually again
                     lastnotempins = mpinstr;
