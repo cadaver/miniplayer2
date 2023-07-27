@@ -645,8 +645,20 @@ void convertsong(void)
 
             int trans = 0;
             int lasttrans = -1; // Make sure transpose resets on song loop, even if GT2 song doesn't include it
+            int looppos = -1;
 
             mpsongstart[e][c] = dest;
+
+            // Find out loop pos first
+            while (1)
+            {
+                if (songorder[e][c][sp] >= LOOPSONG)
+                    break;
+                sp++;
+            }
+            sp++;
+            looppos = songorder[e][c][sp];
+            sp = 0;
 
             while (1)
             {
@@ -658,6 +670,9 @@ void convertsong(void)
                 while (songorder[e][c][sp] >= TRANSDOWN)
                 {
                     positionmap[sp] = dest;
+                    // If song loops to a transpose, make sure the transpose command is included even if same
+                    if (sp == looppos)
+                        lasttrans = -1;
                     trans = songorder[e][c][sp++] - TRANSUP;
                 }
                 while ((songorder[e][c][sp] >= REPEAT) && (songorder[e][c][sp] < TRANSDOWN))
