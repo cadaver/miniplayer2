@@ -78,8 +78,6 @@ unsigned char mpfiltnexttbl[MAX_MPTBLLEN+1];
 
 unsigned char mppatterns[MAX_MPPATT][MAX_MPPATTLEN];
 unsigned char mppattlen[MAX_MPPATT];
-unsigned char mppattnext[MAX_MPPATT];
-unsigned char mppattprev[MAX_MPPATT];
 unsigned char mppattlastdurindex[MAX_MPPATT];
 
 unsigned char mptracks[MAX_MPSONGS][MAX_MPSONGLEN];
@@ -601,7 +599,6 @@ void clearmpsong(void)
 void convertsong(void)
 {
     int e,c,f;
-    int mergepatt;
 
     memset(instrmap, 0, sizeof instrmap);
     memset(instrfirstwavepos, 0, sizeof instrfirstwavepos);
