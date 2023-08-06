@@ -1038,6 +1038,7 @@ void convertsong(void)
         int tptargetnote = 0;
         int tpstepsleft = 0;
         int lastdurrow = 0;
+        int explicitwave = 0;
 
         for (c = 0; c < MAX_PATTROWS+1; c++)
         {
@@ -1165,7 +1166,7 @@ void convertsong(void)
                         durcolumn[d] = dur-tpstepsleft;
                     }
                     ++d;
-                    freq = freqtbl[tptargetnote-FIRSTNOTE-12];                    
+                    freq = freqtbl[tptargetnote-FIRSTNOTE-12];
                     tptargetnote = 0;
                     lastwaveptr = 0; // TP ended, consider next waveptr command individually again
                     lastnotempins = mpinstr;
@@ -1180,6 +1181,7 @@ void convertsong(void)
             if (note >= FIRSTNOTE+12 && note <= LASTNOTE)
             {
                 lastwaveptr = 0; // If triggering a note, forget the last waveptr
+                explicitwave = 0;
 
                 notecolumn[d] = (note-pattbasetrans[e]-FIRSTNOTE-12)*2+MP_FIRSTNOTE;
                 if (mpinstr != lastnotempins)
@@ -1206,7 +1208,9 @@ void convertsong(void)
             {
                 notecolumn[d] = note == KEYOFF ? MP_SETWAVE : MP_REST;
                 if (note == KEYOFF)
-                    cmdcolumn[d] = instrlastwave[lastnoteins] & 0xfe;
+                {
+                    cmdcolumn[d] = (explicitwave ? explicitwave : instrlastwave[lastnoteins]) & 0xfe;
+                }
                 if (waveptr && waveptr != lastwaveptr)
                 {
                     notecolumn[d] = MP_WAVEPOS;
@@ -1214,18 +1218,18 @@ void convertsong(void)
                 }
                 if (notecolumn[d] == MP_REST && gtcmd == 0x5)
                 {
-                    notecolumn[c] = MP_SETAD;
+                    notecolumn[d] = MP_SETAD;
                     cmdcolumn[d] = gtcmddata;
                 }
                 if (notecolumn[d] == MP_REST && gtcmd == 0x6)
                 {
-                    notecolumn[c] = MP_SETSR;
+                    notecolumn[d] = MP_SETSR;
                     cmdcolumn[d] = gtcmddata;
                 }
                 if (notecolumn[d] == MP_REST && gtcmd == 0x7)
                 {
-                    notecolumn[c] = MP_SETWAVE;
-                    cmdcolumn[d] = gtcmddata;
+                    notecolumn[d] = MP_SETWAVE;
+                    explicitwave = cmdcolumn[d] = gtcmddata;
                 }
             }
 
@@ -1244,9 +1248,7 @@ void convertsong(void)
             {
                 if (notecolumn[c] == MP_REST && notecolumn[c+1] == MP_REST)
                     merge = 1;
-                else if (notecolumn[c] == MP_SETWAVE && notecolumn[c+1] == MP_REST)
-                    merge = 1;
-                else if (notecolumn[c] == MP_WAVEPOS && notecolumn[c+1] == MP_REST)
+                else if (notecolumn[c] >= MP_WAVEPOS && notecolumn[c] <= MP_SETSR && notecolumn[c+1] == MP_REST)
                     merge = 1;
                 else if (notecolumn[c] >= MP_FIRSTNOTE && notecolumn[c] <= MP_LASTNOTE && notecolumn[c+1] == MP_REST)
                     merge = 1;
