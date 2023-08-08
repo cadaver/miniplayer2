@@ -44,8 +44,8 @@ unsigned char rtable[MAX_TABLES][MAX_TABLELEN];
 unsigned char songorder[MAX_SONGS][MAX_CHN][MAX_SONGLEN+2];
 unsigned char pattern[MAX_PATT][MAX_PATTROWS*4+4];
 unsigned char patttempo[MAX_PATT][MAX_PATTROWS+1];
-unsigned char pattinstr[MAX_PATT][MAX_PATTROWS+1];
-unsigned char pattnoteinstr[MAX_PATT][MAX_PATTROWS+1];
+unsigned char pattins[MAX_PATT][MAX_PATTROWS+1];
+unsigned char pattnoteins[MAX_PATT][MAX_PATTROWS+1];
 unsigned char pattkeyon[MAX_PATT][MAX_PATTROWS+1];
 unsigned char pattbasetrans[MAX_PATT];
 unsigned char pattremaptempo[MAX_PATT];
@@ -102,6 +102,8 @@ unsigned char pulseposmap[256];
 unsigned char filtposmap[256];
 unsigned char slidemap[65536];
 unsigned char vibratomap[65536];
+unsigned char instradmap[65536];
+unsigned char instrsrmap[65536];
 char prefix[64];
 
 int mpinssize = 0;
@@ -180,7 +182,7 @@ int main(int argc, const char** argv)
     }
 
     memset(prefix, 0, sizeof prefix);
-    
+
     // Prefix added to labels when not in bare mode, to allow compiling several music modules
     // in same compilation unit if needed
     if (!baremode)
@@ -601,6 +603,8 @@ void convertsong(void)
     int e,c,f;
 
     memset(instrmap, 0, sizeof instrmap);
+    memset(instradmap, 0, sizeof instradmap);
+    memset(instrsrmap, 0, sizeof instrsrmap);
     memset(instrfirstwavepos, 0, sizeof instrfirstwavepos);
     memset(instrlastwavepos, 0, sizeof instrlastwavepos);
     memset(instrlastwave, 0, sizeof instrlastwave);
@@ -1028,7 +1032,7 @@ void convertsong(void)
         memset(cmdcolumn, 0, sizeof cmdcolumn);
         memset(durcolumn, 0, sizeof durcolumn);
         int pattlen = 0;
-        int lastnoteins = pattnoteinstr[e][0];
+        int lastnoteins = pattnoteins[e][0];
         int lastnotempins = -1;
         int lastdur;
         int lastwaveptr = 0;
@@ -1050,8 +1054,8 @@ void convertsong(void)
                 notecolumn[d] = MP_ENDPATT;
                 break;
             }
-            int instr = pattinstr[e][c];
-            int mpinstr = instrmap[instr];
+            int ins = pattins[e][c];
+            int mpins = instrmap[ins];
             int dur = patttempo[e][c];
             int waveptr = 0;
 
@@ -1078,7 +1082,7 @@ void convertsong(void)
                 {
                     if (gtcmddata == 0 && note >= FIRSTNOTE+12 && note <= LASTNOTE) // Legato note start
                     {
-                        mpinstr = getlegatoinstr(instr);
+                        mpins = getlegatoinstr(ins);
                         tptargetnote = 0;
                         tpstepsleft = 0;
                     }
@@ -1139,12 +1143,12 @@ void convertsong(void)
             {
                 if (tpstepsleft < dur)
                 {
-                    mpinstr = getlegatoinstr(lastnoteins);
+                    mpins = getlegatoinstr(lastnoteins);
 
                     if (tpstepsleft == 0)
                     {
                         notecolumn[d] = (tptargetnote-pattbasetrans[e]-FIRSTNOTE-12)*2+MP_FIRSTNOTE;
-                        cmdcolumn[d] = mpinstr;
+                        cmdcolumn[d] = mpins;
                     }
                     else
                     {
@@ -1162,14 +1166,14 @@ void convertsong(void)
                         }
                         ++d;
                         notecolumn[d] = (tptargetnote-pattbasetrans[e]-FIRSTNOTE-12)*2+MP_FIRSTNOTE;
-                        cmdcolumn[d] = mpinstr;
+                        cmdcolumn[d] = mpins;
                         durcolumn[d] = dur-tpstepsleft;
                     }
                     ++d;
                     freq = freqtbl[tptargetnote-FIRSTNOTE-12];
                     tptargetnote = 0;
                     lastwaveptr = 0; // TP ended, consider next waveptr command individually again
-                    lastnotempins = mpinstr;
+                    lastnotempins = mpins;
                     continue;
                 }
                 else
@@ -1184,16 +1188,16 @@ void convertsong(void)
                 explicitwave = 0;
 
                 notecolumn[d] = (note-pattbasetrans[e]-FIRSTNOTE-12)*2+MP_FIRSTNOTE;
-                if (mpinstr != lastnotempins)
+                if (mpins != lastnotempins)
                 {
-                    cmdcolumn[d] = mpinstr;
-                    lastnoteins = instr;
-                    lastnotempins = mpinstr;
+                    cmdcolumn[d] = mpins;
+                    lastnoteins = ins;
+                    lastnotempins = mpins;
                 }
                 // If waveptr in combination with note, must split step
                 if (waveptr && waveptr != lastwaveptr)
                 {
-                    int requireddur = instrlastwavepos[instr]-instrfirstwavepos[instr] + 2;
+                    int requireddur = instrlastwavepos[ins]-instrfirstwavepos[ins] + 2;
                     if (dur > requireddur)
                     {
                         durcolumn[d] = requireddur;
@@ -1524,15 +1528,15 @@ void convertsong(void)
     }
 }
 
-unsigned char getlegatoinstr(unsigned char instr)
+unsigned char getlegatoinstr(unsigned char ins)
 {
-    if (legatoinstrmap[instr])
-        return legatoinstrmap[instr];
+    if (legatoinstrmap[ins])
+        return legatoinstrmap[ins];
 
-    if (!legatostepmap[instrlastwavepos[instr]])
+    if (!legatostepmap[instrlastwavepos[ins]])
     {
-        if (mpwavetbl[instrlastwavepos[instr]-1] == 0x00 || mpwavetbl[instrlastwavepos[instr]-1] >= 0x90)
-            legatostepmap[instrlastwavepos[instr]] = instrlastwavepos[instr];
+        if (mpwavetbl[instrlastwavepos[ins]-1] == 0x00 || mpwavetbl[instrlastwavepos[ins]-1] >= 0x90)
+            legatostepmap[instrlastwavepos[ins]] = instrlastwavepos[ins];
         else
         {
             if (mpwavesize >= 255)
@@ -1541,18 +1545,18 @@ unsigned char getlegatoinstr(unsigned char instr)
                 exit(1);
             }
             mpwavetbl[mpwavesize] = 0xff;
-            mpnotetbl[mpwavesize] = mpnotetbl[instrlastwavepos[instr]-1];
-            mpwavenexttbl[mpwavesize] = mpwavenexttbl[instrlastwavepos[instr]-1];
-            legatostepmap[instrlastwavepos[instr]] = mpwavesize + 1;
+            mpnotetbl[mpwavesize] = mpnotetbl[instrlastwavepos[ins]-1];
+            mpwavenexttbl[mpwavesize] = mpwavenexttbl[instrlastwavepos[ins]-1];
+            legatostepmap[instrlastwavepos[ins]] = mpwavesize + 1;
             ++mpwavesize;
         }
     }
 
-    mpinswavepos[mpinssize] = legatostepmap[instrlastwavepos[instr]];
-    legatoinstrmap[instr] = mpinssize+0x81;
+    mpinswavepos[mpinssize] = legatostepmap[instrlastwavepos[ins]];
+    legatoinstrmap[ins] = mpinssize+0x81;
     ++mpinssize;
 
-    return legatoinstrmap[instr];
+    return legatoinstrmap[ins];
 }
 
 unsigned char getvibrato(unsigned char delay, unsigned char param)
@@ -1667,8 +1671,8 @@ void getpatttempos(void)
     int e,c;
 
     memset(patttempo, 0, sizeof patttempo);
-    memset(pattinstr, 0, sizeof pattinstr);
-    memset(pattnoteinstr, 0, sizeof pattinstr);
+    memset(pattins, 0, sizeof pattins);
+    memset(pattnoteins, 0, sizeof pattins);
 
     // Simulates playroutine going through the songs
     for (e = 0; e <= highestusedsong; e++)
@@ -1679,8 +1683,8 @@ void getpatttempos(void)
         int pn[3] = {0,0,0};
         int rep[3] = {0,0,0};
         int stop[3] = {0,0,0};
-        int instr[3] = {1,1,1};
-        int noteinstr[3] = {1,1,1};
+        int ins[3] = {1,1,1};
+        int noteins[3] = {1,1,1};
         int tempo[3] = {6,6,6};
         int tick[3] = {0,0,0};
         int keyon[3] = {0,0,0};
@@ -1719,13 +1723,55 @@ void getpatttempos(void)
                     if (!stop[c])
                     {
                         int note = pattern[pn[c]][pp[c]*4];
-                        instr[c] = pattern[pn[c]][pp[c]*4+1];
+                        int insnow = pattern[pn[c]][pp[c]*4+1];
+
+                        // Convert instruments with AD or SR command by creating new instruments
+                        if (note >= FIRSTNOTE && note <= LASTNOTE && pattern[pn[c]][pp[c]*4+2] == CMD_SETAD && insnow && highestusedinstr < MAX_INSTR-1)
+                        {
+                            int param = pattern[pn[c]][pp[c]*4+3];
+                            if (!instradmap[insnow * 256 + param])
+                            {
+                                printf("Creating copy of instr %d with AD %02x\n", insnow, param);
+                                ++highestusedinstr;
+                                instradmap[insnow * 256 + param] = highestusedinstr;
+                                instr[highestusedinstr] = instr[insnow];
+                                instr[highestusedinstr].ad = param;
+                                insnow = pattern[pn[c]][pp[c]*4+1] = highestusedinstr;
+                            }
+                            else
+                                insnow = pattern[pn[c]][pp[c]*4+1] = instradmap[insnow * 256 + param];
+
+                            pattern[pn[c]][pp[c]*4+2] = 0;
+                            pattern[pn[c]][pp[c]*4+3] = 0;
+                        }
+                        if (note >= FIRSTNOTE && note <= LASTNOTE && pattern[pn[c]][pp[c]*4+2] == CMD_SETSR && insnow && highestusedinstr < MAX_INSTR-1)
+                        {
+                            int param = pattern[pn[c]][pp[c]*4+3];
+                            if (!instrsrmap[insnow * 256 + param])
+                            {
+                                printf("Creating copy of instr %d with SR %02x\n", insnow, param);
+                                ++highestusedinstr;
+                                instrsrmap[insnow * 256 + param] = highestusedinstr;
+                                instr[highestusedinstr] = instr[insnow];
+                                instr[highestusedinstr].sr = param;
+                                insnow = pattern[pn[c]][pp[c]*4+1] = highestusedinstr;
+                            }
+                            else
+                                insnow = pattern[pn[c]][pp[c]*4+1] = instrsrmap[insnow * 256 + param];
+
+                            pattern[pn[c]][pp[c]*4+2] = 0;
+                            pattern[pn[c]][pp[c]*4+3] = 0;
+                        }
+
+                        ins[c] = insnow;
 
                         if (note >= FIRSTNOTE && note <= LASTNOTE && pattern[pn[c]][pp[c]*4+2] != CMD_TONEPORTA)
                         {
                             keyon[c] = 1;
-                            noteinstr[c] = instr[c];
+                            noteins[c] = ins[c];
                         }
+
+
                         if (note == KEYON)
                             keyon[c] = 1;
                         if (note == KEYOFF)
@@ -1792,8 +1838,8 @@ void getpatttempos(void)
                         if (!tick[c])
                         {
                             patttempo[pn[c]][pp[c]] = tempo[c];
-                            pattinstr[pn[c]][pp[c]] = instr[c];
-                            pattnoteinstr[pn[c]][pp[c]] = noteinstr[c];
+                            pattins[pn[c]][pp[c]] = ins[c];
+                            pattnoteins[pn[c]][pp[c]] = noteins[c];
                             pattkeyon[pn[c]][pp[c]] = keyon[c];
                         }
                     }
