@@ -1915,6 +1915,39 @@ void savempsong(const char* songfilename)
         exit(1);
     }
 
+    for (c = 0; c <= highestusedpatt; ++c)
+    {
+        bestfit = 256;
+        bestfitpage = 0;
+
+        for (d = 0; d < 256; ++d)
+        {
+            int fit = pagefree[d] - mppattlen[c];
+            if (fit >= 0)
+            {
+                if (fit < bestfit)
+                {
+                    bestfit = fit;
+                    bestfitpage = d;
+                }
+            }
+        }
+
+        if (bestfitpage > lastpattpage)
+            lastpattpage = bestfitpage;
+
+        pattpage[c] = bestfitpage;
+        pattbegin[c] = 256 - pagefree[bestfitpage];
+        pagefree[bestfitpage] -= mppattlen[c];
+    }
+
+    // Apply paddings to total size
+    for (d = firstpattpage; d <= lastpattpage; ++d)
+    {
+        if (pagefree[d] > 0 && d != lastpattpage)
+            totalsize += pagefree[d];
+    }
+
     if (endaddress >= 0)
         startaddress = endaddress - totalsize;
 
@@ -1979,32 +2012,6 @@ void savempsong(const char* songfilename)
         char namebuf[80];
         sprintf(namebuf, "song%d", c);
         writeblock(out, namebuf, &mptracks[c][0], mpsongtotallen[c]);
-    }
-
-    for (c = 0; c <= highestusedpatt; ++c)
-    {
-        bestfit = 256;
-        bestfitpage = 0;
-
-        for (d = 0; d < 256; ++d)
-        {
-            int fit = pagefree[d] - mppattlen[c];
-            if (fit >= 0)
-            {
-                if (fit < bestfit)
-                {
-                    bestfit = fit;
-                    bestfitpage = d;
-                }
-            }
-        }
-
-        if (bestfitpage > lastpattpage)
-            lastpattpage = bestfitpage;
-
-        pattpage[c] = bestfitpage;
-        pattbegin[c] = 256 - pagefree[bestfitpage];
-        pagefree[bestfitpage] -= mppattlen[c];
     }
 
     for (d = firstpattpage; d <= lastpattpage; ++d)
