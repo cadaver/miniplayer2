@@ -601,20 +601,14 @@ Play_WaveNextM1Access4:
                 jmp Play_StoreFreqHi
 
         if PLAYER_SFX > 0
-Play_NewNoteSfxNoNewIns:
-                adc chnTrans,x
-                sta chnNote,x
-                bne Play_NewNoteSfxRest
 Play_NewNoteSfxExec:
                 lda (pattPtrLo),y               ;Fetch new notes and new instrument, but do not execute SID register changes
-                iny
+                iny                             ;and do not store the note, as it's not needed during a sound effect
                 cmp #REST
                 beq Play_NewNoteSfxRest
                 bcs Play_NewNoteSfxCommand
                 lsr
-                bcs Play_NewNoteSfxNoNewIns
-                adc chnTrans,x
-                sta chnNote,x
+                bcs Play_NewNoteSfxRest
                 lda (pattPtrLo),y
                 sta chnIns,x
 Play_NewNoteSfxCommand:
