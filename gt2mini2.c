@@ -1384,7 +1384,7 @@ void convertsong(void)
                     mppatterns[e][pattlen++] = cmdcolumn[c]-1;
                 }
                 else
-                    mppatterns[e][pattlen++] = notecolumn[c] + MP_NOCMD - 2;
+                    mppatterns[e][pattlen++] = notecolumn[c] + MP_NOCMD;
             }
             else if (notecolumn[c] > MP_REST)
             {

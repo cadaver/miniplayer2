@@ -336,6 +336,7 @@ Play_SongP1Access1:
 Play_SongAccess2:
                 lda dummyData,y
 Play_NoSongJump:bpl Play_NoTrans
+                asl
                 sta chnTrans,x
                 iny
 Play_SongAccess3:
@@ -403,10 +404,6 @@ Play_Rest:
         endif
                 jmp Play_WaveExec
 
-Play_NoNewIns:  adc chnTrans,x
-                sta chnNote,x
-                bne Play_NewNoteCommon
-
         if PLAYER_SFX > 0
 Play_JumpToNewNoteSfx:
                 jmp Play_NewNoteSfxExec
@@ -433,14 +430,14 @@ Play_DurCommon: sta chnCounter,x
                 iny
                 cmp #REST
                 bcs Play_Commands
-                lsr
-                bcs Play_NoNewIns
                 adc chnTrans,x
+                lsr
                 sta chnNote,x
+                bcs Play_NoNewIns
                 lda (pattPtrLo),y
                 iny
                 sta chnIns,x
-Play_NewNoteCommon:
+Play_NoNewIns:
         if PLAYER_ZPOPT > 0
                 sty chnPattPtrLo,x
         else
