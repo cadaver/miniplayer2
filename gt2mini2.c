@@ -962,7 +962,7 @@ void convertsong(void)
             if (pulseused)
                 mpinspulsepos[mpinssize] = 0; // Keep existing pulse going
             else
-                mpinspulsepos[mpinssize] = 1; // Stop pulse-step, for saving rastertime for triangle/sawtooth/noise only instruments
+                mpinspulsepos[mpinssize] = 0x81; // Stop pulse-step, for saving rastertime for triangle/sawtooth/noise only instruments
         }
         else
             mpinspulsepos[mpinssize] = pulseposmap[instr[e].ptr[PTBL]];
