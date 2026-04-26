@@ -88,6 +88,16 @@ sta chnSfxPtrHi,x
 Check prgexample.s for an example sound effect. You must also define slide speed tables (sfxSlideTblLo & sfxSlideTblHi) so that the player
 will assemble correctly with sound effect support enabled.
 
+## Performance considerations
+
+As of 2026, the converter no longer stops pulsetable execution automatically for an instrument not using pulse, because this would cause a per-note overhead, while to actually save the most CPU time, the pulsetable would only need to be stopped once when switching to e.g. a sawtooth instrument.
+
+Instead, you can create a copy of the non-pulse instrument that is used for the first note and which initializes pulsetable to a short program, for example setting the pulse to $000 and stopping. Alternatively, a pulse instrument can have a non-looping pulse program that stops on its own.
+
+Similarly, be aware of repeated unnecessary filter initialization in instruments, when e.g. a fixed filter type and cutoff value are set for a drum instrument, which is then triggered for multiple notes. For this case, you can create a copy of the instrument that does not initialize filter and use it after the first note.
+
+The example tune has been modified for these optimizations.
+
 ## License
 
 Copyright (c) 2026 Lasse Öörni

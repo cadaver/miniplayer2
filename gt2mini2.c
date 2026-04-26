@@ -781,12 +781,6 @@ void convertsong(void)
 
     printf("Converting pulsetable\n");
 
-    // Create the "stop pulse" optimization step
-    mppulselimittbl[mppulsesize] = 0;
-    mppulsespdtbl[mppulsesize] = 0;
-    mppulsenexttbl[mppulsesize] = 0;
-    mppulsesize++;
-
     {
         int sp = 0;
         int pulsevalue = 0;
@@ -932,8 +926,6 @@ void convertsong(void)
 
     for (e = 1; e <= highestusedinstr; e++)
     {
-        int pulseused = 0;
-
         // If instrument has no wavetable pointer, assume it is not used
         if (!instr[e].ptr[WTBL])
             continue;
@@ -946,8 +938,6 @@ void convertsong(void)
             int wp = instrfirstwavepos[e];
             while (wp < 255)
             {
-                if (mpwavetbl[wp-1] & 0x40)
-                    pulseused = 1;
                 if (mpwavetbl[wp-1] >= 0x10 && mpwavetbl[wp-1] <= 0x90)
                     instrlastwave[e] = mpwavetbl[wp-1];
                 if (mpwavenexttbl[wp-1] != wp+1)
@@ -958,12 +948,7 @@ void convertsong(void)
         }
 
         if (!instr[e].ptr[PTBL])
-        {
-            if (pulseused)
-                mpinspulsepos[mpinssize] = 0; // Keep existing pulse going
-            else
-                mpinspulsepos[mpinssize] = 0x81; // Stop pulse-step, for saving rastertime for triangle/sawtooth/noise only instruments
-        }
+            mpinspulsepos[mpinssize] = 0; // Keep existing pulse going
         else
             mpinspulsepos[mpinssize] = pulseposmap[instr[e].ptr[PTBL]];
 
