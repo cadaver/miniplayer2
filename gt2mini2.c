@@ -643,6 +643,7 @@ void convertsong(void)
             int sp = 0;
             int len = 0;
             unsigned char positionmap[256];
+            memset(positionmap, 0, sizeof positionmap);
 
             int trans = 0;
             int lasttrans = -1; // Make sure transpose resets on song loop, even if GT2 song doesn't include it
