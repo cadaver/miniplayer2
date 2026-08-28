@@ -16,6 +16,7 @@ Disadvantages:
 - Only 1 frame of gateoff before new note (does not guarantee proper hard restart)
 - Skips pulsetable execution when reading new note data or new sequencer step
 - Pulse & filter tables can be only 127 steps, due to high bit of position indicating "init" step
+- The immediately audible note start after the gateoff / hard restart can sound uneven on NTSC machines, as they don't have enough SID cycles per frame to stabilize. Miniplayer 1 is better in that regard
 
 Differences to the original miniplayer:
 
